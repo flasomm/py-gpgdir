@@ -1,5 +1,48 @@
 #!/usr/bin/env python
 
+import getopt
+import sys
 import gpgdir
 
-print(gpgdir.joke())
+
+def main(argv):
+    option_args = ["encrypt=", "decrypt=", "sign=", "verify=", "Key-id=", "Default-key", "gnupg-dir=", "user-homedir=",
+                   "verbose", "Version", "help"]
+    try:
+        opts, args = getopt.getopt(argv, "e:d:K:Dg:u:Vh", option_args)
+        print(opts, args)
+        if len(opts) <= 0:
+            print('py-gpgdir -e|-d <directory> [options]')
+            exit(1)
+    except getopt.GetoptError:
+        print('py-gpgdir -e|-d <directory> [options]')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            gpgdir.usage()
+        elif opt in ("-e", "--encrypt"):
+            gpgdir.usage()
+        elif opt in ("-d", "--decrypt"):
+            gpgdir.usage()
+        elif opt in "--sign":
+            gpgdir.usage()
+        elif opt in "--verify":
+            gpgdir.usage()
+        elif opt in ("-K", "--Key-id"):
+            gpgdir.usage()
+        elif opt in ("-D", "--Default-key"):
+            gpgdir.usage()
+        elif opt in ("-g", "--gnupg-dir"):
+            gpgdir.usage()
+        elif opt in ("-u", "--user-homedir"):
+            gpgdir.usage()
+        elif opt in "--verbose":
+            gpgdir.usage()
+        elif opt in ("-V", "--Version"):
+            gpgdir.usage()
+        elif opt in ("-h", "--help"):
+            gpgdir.usage()
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

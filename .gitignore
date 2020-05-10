@@ -1,4 +1,8 @@
 .idea
 .DS_Store
 /build/
+/dist/
 /py_gpgdir.egg-info/
+*.pyc
+/*.egg-info
+/*.egg
