@@ -18,6 +18,4 @@ setup(name='py-gpgdir',
           'gnupg'
       ],
       scripts=['bin/pygpgdir'],
-      zip_safe=False,
-      test_suite='nose.collector',
-      tests_require=['nose'])
+      zip_safe=False)

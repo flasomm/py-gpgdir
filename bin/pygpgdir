@@ -6,8 +6,10 @@ import gpgdir
 
 
 def main(argv):
-    option_args = ["encrypt=", "decrypt=", "sign=", "verify=", "Key-id=", "Default-key", "gnupg-dir=", "user-homedir=",
-                   "verbose", "Version", "help"]
+    option_args = [
+        "encrypt=", "decrypt=", "sign=", "verify=", "Key-id=", "Default-key", "gnupg-dir=", "user-homedir=",
+        "verbose", "Version", "help"
+    ]
     try:
         opts, args = getopt.getopt(argv, "e:d:K:Dg:u:Vh", option_args)
         print(opts, args)

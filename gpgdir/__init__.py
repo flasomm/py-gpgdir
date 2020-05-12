@@ -1,12 +1,14 @@
 import sys
 import gnupg
 import os
-from pprint import pprint
+
+
+def get_home_dir():
+    return os.path.expanduser('~')
 
 
 def get_gpg_dir():
-    home = os.path.expanduser('~')
-    gpg_homedir = home + "/.gnupg"
+    gpg_homedir = get_home_dir() + "/.gnupg"
     if not os.path.isdir(gpg_homedir):
         print(
             "[*] GnuPG directory: "
@@ -18,8 +20,8 @@ def get_gpg_dir():
     return gpg_homedir
 
 
-def get_key(homedir):
-    gpgdirrc_file = homedir + "/.gpgdirrc"
+def get_key():
+    gpgdirrc_file = get_home_dir() + "/.gpgdirrc"
     if not os.path.isfile(gpgdirrc_file):
         print("[*] Please edit " + gpgdirrc_file + " to include your gpg key identifier\n",
               "    (e.g. \"D4696445\"; see the output of \"gpg --list-keys\"), or use the\n",

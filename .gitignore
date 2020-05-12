@@ -4,5 +4,4 @@
 /dist/
 /py_gpgdir.egg-info/
 *.pyc
-/*.egg-info
-/*.egg
+.eggs/
