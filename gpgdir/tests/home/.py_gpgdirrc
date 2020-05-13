@@ -1,0 +1,15 @@
+# Config file for py-gpgdir.
+#
+# Set the key to use to encrypt files with "use_key=<key>", e.g.
+# "use_key=D4696445".  See "gpg --list-keys" for a list of keys on your
+# GnuPG key ring.  Alternatively, if you want gpgdir to always use the
+# default key that is defined by the "default-key" variable in
+# ~/.gnupg/options, then uncomment the "default_key" line below.
+
+[DEFAULT]
+# Uncomment to use the GnuPG default key defined in ~/.gnupg/options:
+DefaultKey=no
+
+# If you want to use a specific GnuPG key, Uncomment the next line and
+# replace "KEYID" with your real key id:
+UseKey=KEYID

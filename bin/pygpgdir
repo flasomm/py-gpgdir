@@ -6,6 +6,7 @@ import gpgdir
 
 
 def main(argv):
+    usage_message = 'py-gpgdir -e|-d <directory> [options]'
     option_args = [
         "encrypt=", "decrypt=", "sign=", "verify=", "Key-id=", "Default-key", "gnupg-dir=", "user-homedir=",
         "verbose", "Version", "help"
@@ -14,10 +15,10 @@ def main(argv):
         opts, args = getopt.getopt(argv, "e:d:K:Dg:u:Vh", option_args)
         print(opts, args)
         if len(opts) <= 0:
-            print('py-gpgdir -e|-d <directory> [options]')
+            print(usage_message)
             exit(1)
     except getopt.GetoptError:
-        print('py-gpgdir -e|-d <directory> [options]')
+        print(usage_message)
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':

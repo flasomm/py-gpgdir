@@ -15,7 +15,8 @@ setup(name='py-gpgdir',
       license='MIT',
       packages=['gpgdir'],
       install_requires=[
-          'gnupg'
+          'gnupg',
+          'wheel'
       ],
       scripts=['bin/pygpgdir'],
       zip_safe=False)

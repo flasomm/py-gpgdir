@@ -1,6 +1,6 @@
 import sys
-import gnupg
 import os
+import configparser
 
 
 def get_home_dir():
@@ -15,24 +15,18 @@ def get_gpg_dir():
             + gpg_homedir +
             " does not exist.\n Please create it by executing: \"gpg --gen-key\". Exiting.\n"
         )
-        sys.exit()
-
+        sys.exit(1)
     return gpg_homedir
 
 
 def get_key():
-    gpgdirrc_file = get_home_dir() + "/.gpgdirrc"
+    gpgdirrc_file = get_home_dir() + "/.py_gpgdirrc"
     if not os.path.isfile(gpgdirrc_file):
-        print("[*] Please edit " + gpgdirrc_file + " to include your gpg key identifier\n",
-              "    (e.g. \"D4696445\"; see the output of \"gpg --list-keys\"), or use the\n",
-              "    default GnuPG key defined in ~/.gnupg/options")
-
-    with open(gpgdirrc_file, "r") as fi:
-        key = ''
-        for ln in fi:
-            if ln.startswith("use_key"):
-                key = ln[2:]
-    print(key)
+        print("[*] Please edit " + gpgdirrc_file + " to include your gpg key identifier")
+        sys.exit(1)
+    config = configparser.ConfigParser()
+    config.read(gpgdirrc_file)
+    return config['DEFAULT']['UseKey']
 
 
 def usage():
