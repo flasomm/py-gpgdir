@@ -4,8 +4,6 @@ import configparser
 import glob
 import gnupg
 
-gpg = gnupg.GPG(gnupghome="/Users/flasomm/.gnupg", verbose=True)
-
 
 def get_home_dir():
     return os.path.expanduser('~')
@@ -38,6 +36,7 @@ def encrypt_dir(dir_to_encrypt):
         print("[*] Directory to encrypt: " + dir_to_encrypt + " does not exist.\n")
         sys.exit(1)
 
+    gpg = gnupg.GPG(gnupghome=get_home_dir() + "/.gnupg", verbose=True)
     print("Encrypt dir: " + dir_to_encrypt)
     for file in list(glob.glob(dir_to_encrypt + "/*")):
         with open(file, 'rb') as f:
