@@ -42,7 +42,7 @@ def encrypt_dir(dir_to_encrypt):
         with open(file, 'rb') as f:
             status = gpg.encrypt_file(
                 file=f,
-                recipients=['flasomm@gmail.com'],
+                recipients=[get_key()],
                 output=file + '.gpg',
             )
         print(status.ok)
