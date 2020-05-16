@@ -62,7 +62,7 @@ def main(argv):
         elif opt in ("-e", "--encrypt"):
             gpgdir.encrypt_dir(arg)
         elif opt in ("-d", "--decrypt"):
-            usage()
+            gpgdir.decrypt_dir(arg)
         elif opt in "--sign":
             usage()
         elif opt in "--verify":

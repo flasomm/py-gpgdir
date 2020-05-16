@@ -50,4 +50,20 @@ def encrypt_dir(dir_to_encrypt):
         print(status.stderr)
         print('~' * 50)
 
-    # gpg --output myfile.txt.gpg --encrypt --recipient your.friend@yourfriendsdomain.com  myfile.txt
+
+def decrypt_dir(dir_to_decrypt):
+    if not os.path.isdir(dir_to_decrypt):
+        print("[*] Directory to decrypt: " + dir_to_decrypt + " does not exist.\n")
+        sys.exit(1)
+
+    gpg = gnupg.GPG(gnupghome=get_home_dir() + "/.gnupg", verbose=True)
+    print("Decrypt dir: " + dir_to_decrypt)
+    for file in list(glob.glob(dir_to_decrypt + "/*.gpg")):
+        with open(file, 'rb') as f:
+            status = gpg.decrypt_file(
+                file=f,
+                output=file,
+            )
+        print(status.ok)
+        print(status.status)
+        print(status.stderr)
