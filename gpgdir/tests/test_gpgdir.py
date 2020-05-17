@@ -34,6 +34,20 @@ class TestGpgDir(unittest.TestCase):
         mock_get_home_dir.return_value = HOME_DIR
         self.assertEqual(gpgdir.get_key(), "KEYID")
 
+    @mock.patch('gpgdir.os.remove')
+    @mock.patch('gpgdir.glob.glob', return_value=['file'])
+    def test_clean_files_gpg(self, mock_glob, mocked_remove):
+        gpgdir.clean_files('/abc')
+        mock_glob.assert_called_once_with('/abc/*.gpg')
+        self.assertTrue(mocked_remove.called)
+
+    @mock.patch('gpgdir.os.remove')
+    @mock.patch('gpgdir.glob.glob', return_value=['file'])
+    def test_clean_files_txt(self, mock_glob, mocked_remove):
+        gpgdir.clean_files('/abc', False)
+        mock_glob.assert_called_once_with('/abc/[!.gpg]*')
+        self.assertTrue(mocked_remove.called)
+
     @mock.patch('gpgdir.get_home_dir')
     @mock.patch("sys.exit")
     def test_encrypt_dir_not_exists(self, mock_sys_exit, mock_get_home_dir):
@@ -41,12 +55,14 @@ class TestGpgDir(unittest.TestCase):
         gpgdir.encrypt_dir("/abc")
         assert mock_sys_exit.called
 
-    def test_encrypt_dir(self):
+    @mock.patch('gpgdir.os.remove')
+    @mock.patch('gpgdir.glob.glob', return_value=['file'])
+    def test_encrypt_dir(self, mock_glob, mocked_remove):
         dir_to_encrypt = HOME_DIR + "/test"
         gpgdir.encrypt_dir(dir_to_encrypt)
         self.assertTrue(len(listdir(dir_to_encrypt)))
-        files_to_rem = list(glob.glob(dir_to_encrypt + "/*.gpg"))
-        [os.remove(os.path.join(dir_to_encrypt, f)) for f in files_to_rem]
+        mock_glob.assert_called_once_with(dir_to_encrypt + '/[!.gpg]*')
+        self.assertTrue(mocked_remove.called)
 
 
 if __name__ == '__main__':
