@@ -32,11 +32,16 @@ def get_key():
     return config['DEFAULT']['UseKey']
 
 
-def clean_files(dir_to_scan, is_gpg=True):
-    pattern = "/*.gpg" if is_gpg else "/[!.gpg]*"
-    files_to_remove = list(glob.glob(dir_to_scan + pattern, recursive=True))
-    if m.lower().endswith(('.png', '.jpg', '.jpeg'))
-    [os.remove(f) for f in files_to_remove]
+def clean_files(dir_to_scan, gpg_only=True):
+    search_results = list(glob.glob(dir_to_scan + '/*', recursive=True))
+    gpg_files = [fn for fn in search_results if os.path.basename(fn).endswith('.gpg')]
+    other_files = [fn for fn in search_results if not os.path.basename(fn).endswith('.gpg')]
+    print(*gpg_files)
+    print(*other_files)
+    # if gpg_only:
+    #     [os.remove(f) for f in gpg_files]
+    # else:
+    #     [os.remove(f) for f in other_files]
 
 
 def encrypt_dir(dir_to_encrypt):
@@ -58,7 +63,7 @@ def encrypt_dir(dir_to_encrypt):
         print(status.stderr)
         print('~' * 50)
 
-    #clean_files(dir_to_encrypt, False)
+    # clean_files(dir_to_encrypt, False)
 
 
 def get_password():
