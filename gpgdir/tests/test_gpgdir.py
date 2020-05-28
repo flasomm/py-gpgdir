@@ -49,9 +49,12 @@ class TestGpgDir(unittest.TestCase):
     @mock.patch('gpgdir.glob.glob')
     def test_encrypt_dir(self, mock_glob, mocked_remove):
         dir_to_encrypt = HOME_DIR + "/test"
-        mock_glob.return_value = [os.path.join(dir_to_encrypt, 'test.txt'), os.path.join(dir_to_encrypt, 'test1.txt')]
+        mock_glob.return_value = [
+            os.path.join(dir_to_encrypt, 'test.txt'),
+            os.path.join(dir_to_encrypt, 'test1.txt')
+        ]
         gpgdir.encrypt_dir(dir_to_encrypt)
-        mock_glob.assert_called_with(os.path.join(dir_to_encrypt, '*'), recursive=True)
+        mock_glob.assert_called_with(os.path.join(dir_to_encrypt, '**/*'), recursive=True)
         self.assertTrue(len(listdir(dir_to_encrypt)))
         self.assertTrue(mocked_remove.called)
 
@@ -71,15 +74,24 @@ class TestGpgDir(unittest.TestCase):
 
     @mock.patch('gpgdir.os.remove')
     @mock.patch('gpgdir.glob.glob')
-    @mock.patch('getpass.getpass')
-    def test_decrypt_dir(self, getpw, mock_glob, mocked_remove):
-        dir_to_decrypt = HOME_DIR + "/test"
-        getpw.return_value = 'pass'
-        mock_glob.return_value = [os.path.join(dir_to_decrypt, 'test.txt.gpg'),
-                                  os.path.join(dir_to_decrypt, 'test1.txt.gpg')]
-        gpgdir.decrypt_dir(dir_to_decrypt)
-        mock_glob.assert_called_with(os.path.join(dir_to_decrypt, '*.gpg'), recursive=True)
-        self.assertTrue(len(listdir(dir_to_decrypt)))
+    def test_decrypt_dir(self, mock_glob, mocked_remove):
+        dir_to_encrypt_decrypt = HOME_DIR + "/test"
+        mock_glob.return_value = [
+            os.path.join(dir_to_encrypt_decrypt, 'sub', 'test.txt'),
+            os.path.join(dir_to_encrypt_decrypt, 'test.txt'),
+            os.path.join(dir_to_encrypt_decrypt, 'test1.txt')
+        ]
+        gpgdir.encrypt_dir(dir_to_encrypt_decrypt)
+        mock_glob.assert_called_with(os.path.join(dir_to_encrypt_decrypt, '**/*'), recursive=True)
+
+        mock_glob.return_value = [
+            os.path.join(dir_to_encrypt_decrypt, 'sub', 'test.txt.gpg'),
+            os.path.join(dir_to_encrypt_decrypt, 'test.txt.gpg'),
+            os.path.join(dir_to_encrypt_decrypt, 'test1.txt.gpg')
+        ]
+        gpgdir.decrypt_dir(dir_to_encrypt_decrypt)
+        mock_glob.assert_called_with(os.path.join(dir_to_encrypt_decrypt, '**/*.gpg'), recursive=True)
+        self.assertTrue(len(listdir(dir_to_encrypt_decrypt)))
         self.assertTrue(mocked_remove.called)
 
 

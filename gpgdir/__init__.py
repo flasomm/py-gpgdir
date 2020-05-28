@@ -39,26 +39,6 @@ def clean_file(file):
         pass
 
 
-def encrypt_dir(dir_to_encrypt):
-    if not os.path.isdir(dir_to_encrypt):
-        print("[*] Directory to encrypt: " + dir_to_encrypt + " does not exist.\n")
-        sys.exit(1)
-
-    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=True)
-    for file in glob.glob(os.path.join(dir_to_encrypt, '*'), recursive=True):
-        with open(file, 'rb') as f:
-            status = gpg.encrypt_file(
-                file=f,
-                recipients=[get_key()],
-                output=file + '.gpg',
-            )
-        clean_file(file)
-        print(status.ok)
-        print(status.status)
-        print(status.stderr)
-        print('~' * 50)
-
-
 def get_password():
     try:
         password = getpass.getpass()
@@ -68,22 +48,48 @@ def get_password():
         return password
 
 
+def encrypt_dir(dir_to_encrypt):
+    if not os.path.isdir(dir_to_encrypt):
+        print("[*] Directory to encrypt: " + dir_to_encrypt + " does not exist.\n")
+        sys.exit(1)
+
+    print("Encrypting dir: " + dir_to_encrypt)
+    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+    for file in glob.glob(os.path.join(dir_to_encrypt, '**/*'), recursive=True):
+        if os.path.isfile(file):
+            print("=> encrypting: " + file)
+            with open(file, 'rb') as f:
+                status = gpg.encrypt_file(
+                    file=f,
+                    recipients=[get_key()],
+                    output=file + '.gpg'
+                )
+            if status.ok:
+                clean_file(file)
+            else:
+                print(status.stderr)
+                sys.exit(1)
+
+
 def decrypt_dir(dir_to_decrypt):
     if not os.path.isdir(dir_to_decrypt):
         print("[*] Directory to decrypt: " + dir_to_decrypt + " does not exist.\n")
         sys.exit(1)
 
+    print("Decrypting dir: " + dir_to_decrypt)
+    os.system("gpgconf --reload gpg-agent")
     password = get_password()
-    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=True)
-    print("Decrypt dir: " + dir_to_decrypt)
-    for file in glob.glob(os.path.join(dir_to_decrypt, '*.gpg'), recursive=True):
+    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+    for file in glob.glob(os.path.join(dir_to_decrypt, '**/*.gpg'), recursive=True):
+        print("=> decrypting: " + file)
         with open(file, 'rb') as f:
             status = gpg.decrypt_file(
                 file=f,
                 passphrase=password,
                 output=os.path.splitext(file)[0],
             )
-        clean_file(file)
-        print(status.ok)
-        print(status.status)
-        print(status.stderr)
+        if status.ok:
+            clean_file(file)
+        else:
+            print(status.stderr)
+            sys.exit(1)
