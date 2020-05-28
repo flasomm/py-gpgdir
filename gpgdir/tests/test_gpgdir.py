@@ -1,7 +1,6 @@
 import unittest
 import gpgdir
 import os
-import glob
 from unittest import mock
 from os import listdir
 
@@ -36,7 +35,7 @@ class TestGpgDir(unittest.TestCase):
 
     @mock.patch('gpgdir.os.remove')
     def test_clean_file(self, mocked_remove):
-        gpgdir.clean_files('file')
+        gpgdir.clean_file('file')
         self.assertTrue(mocked_remove.called)
 
     @mock.patch('gpgdir.get_home_dir')
@@ -54,6 +53,33 @@ class TestGpgDir(unittest.TestCase):
         gpgdir.encrypt_dir(dir_to_encrypt)
         mock_glob.assert_called_with(os.path.join(dir_to_encrypt, '*'), recursive=True)
         self.assertTrue(len(listdir(dir_to_encrypt)))
+        self.assertTrue(mocked_remove.called)
+
+    @mock.patch('getpass.getpass')
+    def test_get_password(self, getpw):
+        getpw.return_value = 'pass'
+        self.assertEqual(gpgdir.get_password(), 'pass')
+
+    @mock.patch('gpgdir.get_home_dir')
+    @mock.patch("sys.exit")
+    @mock.patch('getpass.getpass')
+    def test_decrypt_dir_not_exists(self, getpw, mock_sys_exit, mock_get_home_dir):
+        mock_get_home_dir.return_value = HOME_DIR
+        getpw.return_value = 'pass'
+        gpgdir.decrypt_dir("/abc")
+        assert mock_sys_exit.called
+
+    @mock.patch('gpgdir.os.remove')
+    @mock.patch('gpgdir.glob.glob')
+    @mock.patch('getpass.getpass')
+    def test_decrypt_dir(self, getpw, mock_glob, mocked_remove):
+        dir_to_decrypt = HOME_DIR + "/test"
+        getpw.return_value = 'pass'
+        mock_glob.return_value = [os.path.join(dir_to_decrypt, 'test.txt.gpg'),
+                                  os.path.join(dir_to_decrypt, 'test1.txt.gpg')]
+        gpgdir.decrypt_dir(dir_to_decrypt)
+        mock_glob.assert_called_with(os.path.join(dir_to_decrypt, '*.gpg'), recursive=True)
+        self.assertTrue(len(listdir(dir_to_decrypt)))
         self.assertTrue(mocked_remove.called)
 
 
