@@ -16,7 +16,8 @@ setup(name='py-gpgdir',
       packages=['gpgdir'],
       install_requires=[
           'python-gnupg',
-          'wheel'
+          'wheel',
+          'setuptools'
       ],
       scripts=['bin/pygpgdir'],
       zip_safe=False)

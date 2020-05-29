@@ -26,7 +26,7 @@ Options:
                                   in <directory>.
     -K, --Key-id <id>           - Specify GnuPG key ID, or key-matching
                                   string. This overrides the use_key value
-                                  in ~/.gpgdirrc
+                                  in ~/.py_gpgdirrc
     -D, --Default-key           - Use the key that GnuPG defines as the
                                   default (i.e. the key that is specified
                                   by the default-key option in
@@ -64,7 +64,7 @@ def main(argv):
         elif opt in ("-d", "--decrypt"):
             gpgdir.decrypt_dir(arg)
         elif opt in "--sign":
-            usage()
+            gpgdir.sign_dir(arg)
         elif opt in "--verify":
             usage()
         elif opt in ("-K", "--Key-id"):
@@ -78,7 +78,7 @@ def main(argv):
         elif opt in "--verbose":
             usage()
         elif opt in ("-V", "--Version"):
-            usage()
+            gpgdir.get_version()
         elif opt in ("-h", "--help"):
             usage()
 

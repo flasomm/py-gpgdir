@@ -1,9 +1,14 @@
+from pkg_resources import get_distribution
 import sys
 import os
 import configparser
 import glob
 import gnupg
 import getpass
+
+
+def get_version():
+    print(get_distribution('py-gpgdir'))
 
 
 def get_home_dir():
@@ -14,9 +19,9 @@ def get_gpg_dir():
     gpg_homedir = os.path.join(get_home_dir(), '.gnupg')
     if not os.path.isdir(gpg_homedir):
         print(
-            "[*] GnuPG directory: "
-            + gpg_homedir + " does not exist.\n"
-            + "Please create it by executing: \"gpg --gen-key\"."
+            '[*] GnuPG directory: '
+            + gpg_homedir + ' does not exist.\n'
+            + 'Please create it by executing: \'gpg --gen-key\'.'
         )
         sys.exit(1)
     return gpg_homedir
@@ -25,11 +30,17 @@ def get_gpg_dir():
 def get_key():
     gpgdirrc_file = os.path.join(get_home_dir(), '.py_gpgdirrc')
     if not os.path.isfile(gpgdirrc_file):
-        print("[*] Please edit " + gpgdirrc_file + " to include your gpg key identifier")
+        print('[*] Please edit ' + gpgdirrc_file + ' to include your gpg key identifier')
         sys.exit(1)
     config = configparser.ConfigParser()
     config.read(gpgdirrc_file)
     return config['DEFAULT']['UseKey']
+
+
+def check_directory_exists(dir, message):
+    if not os.path.isdir(dir):
+        raise Exception('[*] ' + message + ': ' + dir + ' does not exist.\n')
+        sys.exit(1)
 
 
 def clean_file(file):
@@ -49,15 +60,12 @@ def get_password():
 
 
 def encrypt_dir(dir_to_encrypt):
-    if not os.path.isdir(dir_to_encrypt):
-        print("[*] Directory to encrypt: " + dir_to_encrypt + " does not exist.\n")
-        sys.exit(1)
-
-    print("Encrypting dir: " + dir_to_encrypt)
+    check_directory_exists(dir_to_encrypt, 'Directory to encrypt')
+    print('Encrypting dir: ' + dir_to_encrypt)
     gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
     for file in glob.glob(os.path.join(dir_to_encrypt, '**/*'), recursive=True):
         if os.path.isfile(file):
-            print("=> encrypting: " + file)
+            print('[+] encrypting: ' + file)
             with open(file, 'rb') as f:
                 status = gpg.encrypt_file(
                     file=f,
@@ -72,16 +80,13 @@ def encrypt_dir(dir_to_encrypt):
 
 
 def decrypt_dir(dir_to_decrypt):
-    if not os.path.isdir(dir_to_decrypt):
-        print("[*] Directory to decrypt: " + dir_to_decrypt + " does not exist.\n")
-        sys.exit(1)
-
-    print("Decrypting dir: " + dir_to_decrypt)
-    os.system("gpgconf --reload gpg-agent")
+    check_directory_exists(dir_to_decrypt, 'Directory to decrypt')
+    print('Decrypting dir: ' + dir_to_decrypt)
+    os.system('gpgconf --reload gpg-agent')
     password = get_password()
     gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
     for file in glob.glob(os.path.join(dir_to_decrypt, '**/*.gpg'), recursive=True):
-        print("=> decrypting: " + file)
+        print('[+] decrypting: ' + file)
         with open(file, 'rb') as f:
             status = gpg.decrypt_file(
                 file=f,
@@ -93,3 +98,21 @@ def decrypt_dir(dir_to_decrypt):
         else:
             print(status.stderr)
             sys.exit(1)
+
+
+def sign_dir(dir_to_sign):
+    check_directory_exists(dir_to_sign, 'Directory to sign')
+    print('Signing dir: ' + dir_to_sign)
+    os.system('gpgconf --reload gpg-agent')
+    password = get_password()
+    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+    for file in glob.glob(os.path.join(dir_to_sign, '**/*'), recursive=True):
+        if os.path.isfile(file) and not (file.endswith('.gpg') or file.endswith('.sig')):
+            print('[+] signing: ' + file)
+            with open(file, 'rb') as f:
+                gpg.sign_file(
+                    f,
+                    keyid=get_key(),
+                    passphrase=password,
+                    output=file + '.sig'
+                )

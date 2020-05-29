@@ -11,3 +11,6 @@ pygpgdir -e gpgdir/tests/home/test/
 
 ## Decrypt folder
 pygpgdir -d gpgdir/tests/home/test/
+
+## Sign folder
+pygpgdir --sign gpgdir/tests/home/test/
