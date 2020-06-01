@@ -22,11 +22,9 @@ class TestGpgDir(unittest.TestCase):
         self.assertEqual(gpgdir.get_gpg_dir(), home + "/.gnupg")
 
     @mock.patch('gpgdir.get_home_dir')
-    @mock.patch("sys.exit")
-    def test_get_gpg_dir_not_exists(self, mock_sys_exit, mock_get_home_dir):
+    def test_get_gpg_dir_not_exists(self, mock_get_home_dir):
         mock_get_home_dir.return_value = '/abc'
-        gpgdir.get_gpg_dir()
-        assert mock_sys_exit.called
+        self.assertRaises(Exception, gpgdir.sign_dir, '/abc')
 
     @mock.patch('gpgdir.get_home_dir')
     def test_get_key(self, mock_get_home_dir):
@@ -39,17 +37,16 @@ class TestGpgDir(unittest.TestCase):
         self.assertTrue(mocked_remove.called)
 
     @mock.patch('gpgdir.get_home_dir')
-    @mock.patch("sys.exit")
-    def test_encrypt_dir_not_exists(self, mock_sys_exit, mock_get_home_dir):
+    def test_encrypt_dir_not_exists(self, mock_get_home_dir):
         mock_get_home_dir.return_value = HOME_DIR
-        gpgdir.encrypt_dir("/abc")
-        assert mock_sys_exit.called
+        self.assertRaises(Exception, gpgdir.encrypt_dir, '/abc')
 
     @mock.patch('gpgdir.os.remove')
     @mock.patch('gpgdir.glob.glob')
     def test_encrypt_dir(self, mock_glob, mocked_remove):
         dir_to_encrypt = HOME_DIR + "/test"
         mock_glob.return_value = [
+            os.path.join(dir_to_encrypt, 'sub', 'test.txt'),
             os.path.join(dir_to_encrypt, 'test.txt'),
             os.path.join(dir_to_encrypt, 'test1.txt')
         ]
@@ -64,13 +61,9 @@ class TestGpgDir(unittest.TestCase):
         self.assertEqual(gpgdir.get_password(), 'pass')
 
     @mock.patch('gpgdir.get_home_dir')
-    @mock.patch("sys.exit")
-    @mock.patch('getpass.getpass')
-    def test_decrypt_dir_not_exists(self, getpw, mock_sys_exit, mock_get_home_dir):
+    def test_decrypt_dir_not_exists(self, mock_get_home_dir):
         mock_get_home_dir.return_value = HOME_DIR
-        getpw.return_value = 'pass'
-        gpgdir.decrypt_dir("/abc")
-        assert mock_sys_exit.called
+        self.assertRaises(Exception, gpgdir.decrypt_dir, '/abc')
 
     @mock.patch('gpgdir.os.remove')
     @mock.patch('gpgdir.glob.glob')
@@ -93,6 +86,40 @@ class TestGpgDir(unittest.TestCase):
         mock_glob.assert_called_with(os.path.join(dir_to_encrypt_decrypt, '**/*.gpg'), recursive=True)
         self.assertTrue(len(listdir(dir_to_encrypt_decrypt)))
         self.assertTrue(mocked_remove.called)
+
+    @mock.patch('gpgdir.get_home_dir')
+    def test_sign_dir_not_exists(self, mock_get_home_dir):
+        mock_get_home_dir.return_value = HOME_DIR
+        self.assertRaises(Exception, gpgdir.sign_dir, '/abc')
+
+    @mock.patch('gpgdir.glob.glob')
+    def test_sign_dir(self, mock_glob):
+        dir_to_sign = HOME_DIR + "/test"
+        mock_glob.return_value = [
+            os.path.join(dir_to_sign, 'sub', 'test.txt'),
+            os.path.join(dir_to_sign, 'test.txt'),
+            os.path.join(dir_to_sign, 'test1.txt')
+        ]
+        gpgdir.encrypt_dir(dir_to_sign)
+        mock_glob.assert_called_with(os.path.join(dir_to_sign, '**/*'), recursive=True)
+        self.assertTrue(len(listdir(dir_to_sign)))
+
+    @mock.patch('gpgdir.get_home_dir')
+    def test_verify_dir_not_exists(self, mock_get_home_dir):
+        mock_get_home_dir.return_value = HOME_DIR
+        self.assertRaises(Exception, gpgdir.sign_dir, '/abc')
+
+    @mock.patch('gpgdir.glob.glob')
+    def test_verify_dir(self, mock_glob):
+        dir_to_verify = HOME_DIR + "/test"
+        mock_glob.return_value = [
+            os.path.join(dir_to_verify, 'sub', 'test.txt.sig'),
+            os.path.join(dir_to_verify, 'test.txt.sig'),
+            os.path.join(dir_to_verify, 'test1.txt.sig')
+        ]
+        gpgdir.verify_dir(dir_to_verify)
+        mock_glob.assert_called_with(os.path.join(dir_to_verify, '**/*'), recursive=True)
+        self.assertTrue(len(listdir(dir_to_verify)))
 
 
 if __name__ == '__main__':

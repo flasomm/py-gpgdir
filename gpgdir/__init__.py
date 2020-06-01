@@ -15,15 +15,14 @@ def get_home_dir():
     return os.path.expanduser('~')
 
 
+def check_directory_exists(dir, message):
+    if not os.path.isdir(dir):
+        raise Exception('[*] ' + message + ': ' + dir + ' does not exist.\n')
+
+
 def get_gpg_dir():
     gpg_homedir = os.path.join(get_home_dir(), '.gnupg')
-    if not os.path.isdir(gpg_homedir):
-        print(
-            '[*] GnuPG directory: '
-            + gpg_homedir + ' does not exist.\n'
-            + 'Please create it by executing: \'gpg --gen-key\'.'
-        )
-        sys.exit(1)
+    check_directory_exists(gpg_homedir, 'GnuPG directory')
     return gpg_homedir
 
 
@@ -35,12 +34,6 @@ def get_key():
     config = configparser.ConfigParser()
     config.read(gpgdirrc_file)
     return config['DEFAULT']['UseKey']
-
-
-def check_directory_exists(dir, message):
-    if not os.path.isdir(dir):
-        raise Exception('[*] ' + message + ': ' + dir + ' does not exist.\n')
-        sys.exit(1)
 
 
 def clean_file(file):
@@ -116,3 +109,18 @@ def sign_dir(dir_to_sign):
                     passphrase=password,
                     output=file + '.sig'
                 )
+
+
+def verify_dir(dir_to_verify):
+    check_directory_exists(dir_to_verify, 'Directory to verify')
+    print('Verifying dir: ' + dir_to_verify)
+    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+    for file in glob.glob(os.path.join(dir_to_verify, '**/*'), recursive=True):
+        if os.path.isfile(file) and file.endswith('.sig'):
+            print('[+] verifying: ' + file)
+            with open(file, 'rb') as f:
+                verified = gpg.verify_file(f)
+                if not verified:
+                    raise ValueError("Signature could not be verified!")
+                else:
+                    print('verified')
