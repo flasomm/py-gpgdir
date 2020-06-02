@@ -56,6 +56,7 @@ def encrypt_dir(dir_to_encrypt):
     check_directory_exists(dir_to_encrypt, 'Directory to encrypt')
     print('Encrypting dir: ' + dir_to_encrypt)
     gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+
     for file in glob.glob(os.path.join(dir_to_encrypt, '**/*'), recursive=True):
         if os.path.isfile(file):
             print('[+] encrypting: ' + file)
@@ -78,6 +79,7 @@ def decrypt_dir(dir_to_decrypt):
     os.system('gpgconf --reload gpg-agent')
     password = get_password()
     gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+
     for file in glob.glob(os.path.join(dir_to_decrypt, '**/*.gpg'), recursive=True):
         print('[+] decrypting: ' + file)
         with open(file, 'rb') as f:
@@ -99,6 +101,7 @@ def sign_dir(dir_to_sign):
     os.system('gpgconf --reload gpg-agent')
     password = get_password()
     gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+
     for file in glob.glob(os.path.join(dir_to_sign, '**/*'), recursive=True):
         if os.path.isfile(file) and not (file.endswith('.gpg') or file.endswith('.sig')):
             print('[+] signing: ' + file)
@@ -115,6 +118,7 @@ def verify_dir(dir_to_verify):
     check_directory_exists(dir_to_verify, 'Directory to verify')
     print('Verifying dir: ' + dir_to_verify)
     gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+
     for file in glob.glob(os.path.join(dir_to_verify, '**/*'), recursive=True):
         if os.path.isfile(file) and file.endswith('.sig'):
             print('[+] verifying: ' + file)

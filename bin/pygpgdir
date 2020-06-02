@@ -7,13 +7,13 @@ import gpgdir
 
 def usage():
     print("""
-py-gpgdir; Recursive direction encryption and decryption with GnuPG
+pygpgdir; Recursive direction encryption and decryption with GnuPG
 
 [+] Version: $version
     Author:  Fabrice Sommavilla
     URL:     https://github.com/flasomm/py-gpgdir.git
 
-Usage: py-gpgdir -e|-d <directory> [options]
+Usage: pygpgdir -e|-d <directory> [options]
 
 Options:
     -e, --encrypt <directory>   - Recursively encrypt all files in
@@ -43,7 +43,7 @@ Options:
 
 
 def main(argv):
-    usage_message = 'py-gpgdir -e|-d <directory> [options]'
+    usage_message = 'pygpgdir -e|-d <directory> [options]'
     option_args = [
         "encrypt=", "decrypt=", "sign=", "verify=", "Key-id=", "Default-key",
         "gnupg-dir=", "user-homedir=", "verbose", "Version", "help"
