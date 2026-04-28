@@ -1,33 +1,88 @@
-from pkg_resources import get_distribution
+from importlib.metadata import version
 import sys
 import os
+import re
 import configparser
 import glob
+import subprocess
 import gnupg
 import getpass
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = None
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+def _get_gpg(home_dir=None, verbose=False):
+    """Return a configured GPG instance."""
+    return gnupg.GPG(gnupghome=get_gpg_dir(home_dir=home_dir), verbose=verbose)
+
+
+def _reload_agent():
+    """Reload the gpg-agent so cached credentials are refreshed."""
+    subprocess.run(['gpgconf', '--reload', 'gpg-agent'], check=True)
+
+
+def _is_hidden(path):
+    """Return True if any component of *path* is a hidden file/directory."""
+    return any(part.startswith('.') for part in path.split(os.sep) if part)
+
+
+def _iter_files(directory, pattern='**/*', skip_extensions=()):
+    """Yield every non-hidden regular file under *directory*.
+
+    Args:
+        directory:        Root path to walk.
+        pattern:          Glob pattern relative to *directory*.
+        skip_extensions:  Tuple of file extensions to exclude (e.g. '.gpg').
+    """
+    for file in glob.glob(os.path.join(directory, pattern), recursive=True):
+        if not os.path.isfile(file):
+            continue
+        if _is_hidden(file):
+            continue
+        if skip_extensions and any(file.endswith(ext) for ext in skip_extensions):
+            continue
+        yield file
+
+
+def _with_progress(items, description, enabled=True):
+    """Wrap an iterable with a progress bar when available."""
+    if not enabled or tqdm is None:
+        return items
+    return tqdm(items, desc=description, unit='file', dynamic_ncols=True)
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 def get_version():
-    print(get_distribution('py-gpgdir'))
+    print(version('py-gpgdir'))
 
 
-def get_home_dir():
-    return os.path.expanduser('~')
+def get_home_dir(home_dir=None):
+    return home_dir if home_dir else os.path.expanduser('~')
 
 
-def check_directory_exists(dir, message):
-    if not os.path.isdir(dir):
-        raise Exception('[*] ' + message + ': ' + dir + ' does not exist.\n')
+def check_directory_exists(directory, message):
+    if not os.path.isdir(directory):
+        raise Exception('[*] ' + message + ': ' + directory + ' does not exist.\n')
 
 
-def get_gpg_dir():
-    gpg_homedir = os.path.join(get_home_dir(), '.gnupg')
+def get_gpg_dir(home_dir=None):
+    gpg_homedir = os.path.join(get_home_dir(home_dir=home_dir), '.gnupg')
     check_directory_exists(gpg_homedir, 'GnuPG directory')
     return gpg_homedir
 
 
-def get_key():
-    gpgdirrc_file = os.path.join(get_home_dir(), '.py_gpgdirrc')
+def get_key(home_dir=None):
+    gpgdirrc_file = os.path.join(get_home_dir(home_dir=home_dir), '.py_gpgdirrc')
     if not os.path.isfile(gpgdirrc_file):
         print('[*] Please edit ' + gpgdirrc_file + ' to include your gpg key identifier')
         sys.exit(1)
@@ -36,11 +91,31 @@ def get_key():
     return config['DEFAULT']['UseKey']
 
 
+def get_default_key(home_dir=None):
+    """Read the default-key from ~/.gnupg/gpg.conf."""
+    gpg_conf = os.path.join(get_gpg_dir(home_dir=home_dir), 'gpg.conf')
+    if not os.path.isfile(gpg_conf):
+        print('[*] gpg.conf not found at ' + gpg_conf + ', cannot determine default key.')
+        sys.exit(1)
+    with open(gpg_conf, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith('#') or not line:
+                continue
+            match = re.match(r'^default-key\s+(\S+)', line)
+            if match:
+                return match.group(1)
+    print('[*] No default-key defined in ' + gpg_conf)
+    sys.exit(1)
+
+
 def clean_file(file):
     try:
         os.remove(file)
-    except OSError:
-        pass
+        return True
+    except OSError as error:
+        print('[!] Failed to remove file ' + file + ': ' + str(error))
+        return False
 
 
 def get_password():
@@ -48,83 +123,118 @@ def get_password():
         password = getpass.getpass()
     except Exception as error:
         print('Error getting password', error)
-    else:
-        return password
+        sys.exit(1)
+    if not password:
+        print('[*] Password cannot be empty.')
+        sys.exit(1)
+    return password
 
 
-def encrypt_dir(dir_to_encrypt):
+def encrypt_dir(
+    dir_to_encrypt,
+    key_id=None,
+    home_dir=None,
+    verbose=False,
+    delete_original=True,
+    dry_run=False,
+    progress=True,
+):
     check_directory_exists(dir_to_encrypt, 'Directory to encrypt')
     print('Encrypting dir: ' + dir_to_encrypt)
-    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+    gpg = _get_gpg(home_dir=home_dir, verbose=verbose)
+    key = key_id or get_key(home_dir=home_dir)
 
-    for file in glob.glob(os.path.join(dir_to_encrypt, '**/*'), recursive=True):
-        if os.path.isfile(file):
+    files = list(_iter_files(dir_to_encrypt, skip_extensions=('.gpg',)))
+    show_progress = progress and not verbose and not dry_run
+
+    for file in _with_progress(files, 'Encrypting', enabled=show_progress):
+        if dry_run:
+            print('[DRY-RUN] would encrypt: ' + file + ' -> ' + file + '.gpg')
+            continue
+        if verbose:
             print('[+] encrypting: ' + file)
-            with open(file, 'rb') as f:
-                status = gpg.encrypt_file(
-                    file=f,
-                    recipients=[get_key()],
-                    output=file + '.gpg'
-                )
-            if status.ok:
-                clean_file(file)
-            else:
-                print(status.stderr)
-                sys.exit(1)
-
-
-def decrypt_dir(dir_to_decrypt):
-    check_directory_exists(dir_to_decrypt, 'Directory to decrypt')
-    print('Decrypting dir: ' + dir_to_decrypt)
-    os.system('gpgconf --reload gpg-agent')
-    password = get_password()
-    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
-
-    for file in glob.glob(os.path.join(dir_to_decrypt, '**/*.gpg'), recursive=True):
-        print('[+] decrypting: ' + file)
         with open(file, 'rb') as f:
-            status = gpg.decrypt_file(
-                file=f,
-                passphrase=password,
-                output=os.path.splitext(file)[0],
-            )
+            status = gpg.encrypt_file(f, recipients=[key], output=file + '.gpg')
         if status.ok:
-            clean_file(file)
+            if delete_original and not clean_file(file):
+                sys.exit(1)
         else:
             print(status.stderr)
             sys.exit(1)
 
 
-def sign_dir(dir_to_sign):
+def decrypt_dir(
+    dir_to_decrypt,
+    home_dir=None,
+    verbose=False,
+    delete_original=True,
+    dry_run=False,
+    progress=True,
+):
+    check_directory_exists(dir_to_decrypt, 'Directory to decrypt')
+    print('Decrypting dir: ' + dir_to_decrypt)
+    _reload_agent()
+    password = get_password()
+    gpg = _get_gpg(home_dir=home_dir, verbose=verbose)
+
+    files = list(_iter_files(dir_to_decrypt, pattern='**/*.gpg'))
+    show_progress = progress and not verbose and not dry_run
+
+    for file in _with_progress(files, 'Decrypting', enabled=show_progress):
+        if dry_run:
+            print('[DRY-RUN] would decrypt: ' + file + ' -> ' + os.path.splitext(file)[0])
+            continue
+        if verbose:
+            print('[+] decrypting: ' + file)
+        with open(file, 'rb') as f:
+            status = gpg.decrypt_file(
+                f,
+                passphrase=password,
+                output=os.path.splitext(file)[0],
+            )
+        if status.ok:
+            if delete_original and not clean_file(file):
+                sys.exit(1)
+        else:
+            print(status.stderr)
+            sys.exit(1)
+
+
+def sign_dir(dir_to_sign, key_id=None, home_dir=None, verbose=False):
     check_directory_exists(dir_to_sign, 'Directory to sign')
     print('Signing dir: ' + dir_to_sign)
-    os.system('gpgconf --reload gpg-agent')
+    _reload_agent()
     password = get_password()
-    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+    gpg = _get_gpg(home_dir=home_dir, verbose=verbose)
+    key = key_id or get_key(home_dir=home_dir)
 
-    for file in glob.glob(os.path.join(dir_to_sign, '**/*'), recursive=True):
-        if os.path.isfile(file) and not (file.endswith('.gpg') or file.endswith('.sig')):
+    files = list(_iter_files(dir_to_sign, skip_extensions=('.gpg', '.sig')))
+    show_progress = not verbose
+
+    for file in _with_progress(files, 'Signing', enabled=show_progress):
+        if verbose:
             print('[+] signing: ' + file)
-            with open(file, 'rb') as f:
-                gpg.sign_file(
-                    f,
-                    keyid=get_key(),
-                    passphrase=password,
-                    output=file + '.sig'
-                )
+        with open(file, 'rb') as f:
+            status = gpg.sign_file(f, keyid=key, passphrase=password, output=file + '.sig')
+        if not status:
+            print('[!] Failed to sign: ' + file)
+            sys.exit(1)
 
 
-def verify_dir(dir_to_verify):
+def verify_dir(dir_to_verify, home_dir=None, verbose=False):
     check_directory_exists(dir_to_verify, 'Directory to verify')
     print('Verifying dir: ' + dir_to_verify)
-    gpg = gnupg.GPG(gnupghome=os.path.join(get_home_dir(), '.gnupg'), verbose=False)
+    gpg = _get_gpg(home_dir=home_dir, verbose=verbose)
 
-    for file in glob.glob(os.path.join(dir_to_verify, '**/*'), recursive=True):
-        if os.path.isfile(file) and file.endswith('.sig'):
+    files = list(_iter_files(dir_to_verify, pattern='**/*.sig'))
+    show_progress = not verbose
+
+    for file in _with_progress(files, 'Verifying', enabled=show_progress):
+        if verbose:
             print('[+] verifying: ' + file)
-            with open(file, 'rb') as f:
-                verified = gpg.verify_file(f)
-                if not verified:
-                    raise ValueError("Signature could not be verified!")
-                else:
-                    print('verified')
+        with open(file, 'rb') as f:
+            verified = gpg.verify_file(f)
+        if not verified:
+            raise ValueError('Signature could not be verified: ' + file)
+        if verbose:
+            print('[+] verified: ' + file)

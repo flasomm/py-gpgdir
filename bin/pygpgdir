@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import getopt
 import sys
@@ -34,6 +34,8 @@ Options:
     -g, --gnupg-dir <dir>       - Specify a path to a .gnupg directory for
                                   gpg keys (the default is ~/.gnupg if this
                                   option is not used).
+    --no-delete                 - Keep original files after encrypt/decrypt.
+    --dry-run                   - Preview actions without changing files.
     --verbose                   - Run in verbose mode.
     -V, --Version               - print version.
     -h, --help                  - print help.
@@ -46,10 +48,10 @@ def main(argv):
     usage_message = 'pygpgdir -e|-d <directory> [options]'
     option_args = [
         "encrypt=", "decrypt=", "sign=", "verify=", "Key-id=", "Default-key",
-        "user-homedir=", "verbose", "Version", "help"
+        "gnupg-dir=", "user-homedir=", "no-delete", "dry-run", "verbose", "Version", "help"
     ]
     try:
-        opts, args = getopt.getopt(argv, "e:d:K:Du:Vh", option_args)
+        opts, args = getopt.getopt(argv, "e:d:K:Dg:u:Vh", option_args)
         if len(opts) <= 0:
             print(usage_message)
             exit(1)
@@ -57,29 +59,71 @@ def main(argv):
         print(usage_message)
         sys.exit(2)
 
+    # Collect options before dispatching
+    action = None
+    action_arg = None
+    key_id = None
+    home_dir = None
+    use_default_key = False
+    delete_original = True
+    dry_run = False
+    verbose = False
+
     for opt, arg in opts:
-        if opt == '-h':
+        if opt in ('-h', '--help'):
             usage()
-        elif opt in ("-e", "--encrypt"):
-            gpgdir.encrypt_dir(arg)
-        elif opt in ("-d", "--decrypt"):
-            gpgdir.decrypt_dir(arg)
-        elif opt in "--sign":
-            gpgdir.sign_dir(arg)
-        elif opt in "--verify":
-            gpgdir.verify_dir(arg)
-        elif opt in ("-K", "--Key-id"):
-            usage()
-        elif opt in ("-D", "--Default-key"):
-            usage()
-        elif opt in ("-u", "--user-homedir"):
-            usage()
-        elif opt in "--verbose":
-            usage()
-        elif opt in ("-V", "--Version"):
+        elif opt in ('-V', '--Version'):
             gpgdir.get_version()
-        elif opt in ("-h", "--help"):
-            usage()
+            sys.exit(0)
+        elif opt in ('-e', '--encrypt'):
+            action, action_arg = 'encrypt', arg
+        elif opt in ('-d', '--decrypt'):
+            action, action_arg = 'decrypt', arg
+        elif opt == '--sign':
+            action, action_arg = 'sign', arg
+        elif opt == '--verify':
+            action, action_arg = 'verify', arg
+        elif opt in ('-K', '--Key-id'):
+            key_id = arg
+        elif opt in ('-D', '--Default-key'):
+            use_default_key = True
+        elif opt in ('-g', '--gnupg-dir', '-u', '--user-homedir'):
+            home_dir = arg
+        elif opt == '--no-delete':
+            delete_original = False
+        elif opt == '--dry-run':
+            dry_run = True
+        elif opt == '--verbose':
+            verbose = True
+
+    if action is None:
+        print(usage_message)
+        sys.exit(1)
+
+    if use_default_key:
+        key_id = gpgdir.get_default_key(home_dir=home_dir)
+
+    if action == 'encrypt':
+        gpgdir.encrypt_dir(
+            action_arg,
+            key_id=key_id,
+            home_dir=home_dir,
+            verbose=verbose,
+            delete_original=delete_original,
+            dry_run=dry_run,
+        )
+    elif action == 'decrypt':
+        gpgdir.decrypt_dir(
+            action_arg,
+            home_dir=home_dir,
+            verbose=verbose,
+            delete_original=delete_original,
+            dry_run=dry_run,
+        )
+    elif action == 'sign':
+        gpgdir.sign_dir(action_arg, key_id=key_id, home_dir=home_dir, verbose=verbose)
+    elif action == 'verify':
+        gpgdir.verify_dir(action_arg, home_dir=home_dir, verbose=verbose)
 
 
 if __name__ == "__main__":

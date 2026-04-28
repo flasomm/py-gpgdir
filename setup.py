@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='py-gpgdir',
-      version='0.1',
+    version='0.2.0',
       description='py-gpgdir is a python script that uses recursively encrypt and decrypt directories using gpg',
       classifiers=[
           'Development Status :: 0.1',
@@ -16,6 +16,7 @@ setup(name='py-gpgdir',
       packages=['gpgdir'],
       install_requires=[
           'python-gnupg',
+          'tqdm',
           'wheel',
           'setuptools'
       ],
