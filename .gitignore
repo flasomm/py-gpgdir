@@ -5,3 +5,6 @@
 /py_gpgdir.egg-info/
 *.pyc
 .eggs/
+__pycache__/
+.pytest_cache/
+.venv/
