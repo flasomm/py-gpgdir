@@ -1,15 +1,15 @@
 from setuptools import setup
 
-setup(name='py-gpgdir',
+setup(name='ninja-vault',
     version='0.2.0',
-      description='py-gpgdir is a python script that uses recursively encrypt and decrypt directories using gpg',
+      description='ninja-vault is a Python CLI for recursive directory encryption, decryption, signing and verification using GnuPG',
       classifiers=[
-          'Development Status :: 0.1',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: MIT License',
           'Programming Language :: Python :: 3.8'
       ],
-      keywords='gpgdir, gpg, encrypt, decrypt, directory',
-      url='https://github.com/flasomm/py-gpgdir.git',
+      keywords='gpg, encrypt, decrypt, directory, ninja-vault',
+      url='https://github.com/flasomm/ninja-vault.git',
       author='Fabrice Sommavilla',
       author_email='fs@physalix.com',
       license='MIT',
@@ -20,5 +20,5 @@ setup(name='py-gpgdir',
           'wheel',
           'setuptools'
       ],
-      scripts=['bin/pygpgdir'],
+      scripts=['bin/py-njv'],
       zip_safe=False)

@@ -1,8 +1,8 @@
-# py-gpgdir
+# ninja-vault
 
 Recursive directory encryption, decryption, signing, and verification with GnuPG.
 
-`pygpgdir` walks a directory tree and applies GPG operations to each file while skipping hidden files and folders.
+`py-njv` walks a directory tree and applies GPG operations to each file while skipping hidden files and folders.
 
 ## Demo
 
@@ -42,32 +42,32 @@ Create `~/.py_gpgdirrc`:
 UseKey=YOUR_KEY_ID
 ```
 
-If you use `-D/--Default-key`, `pygpgdir` reads `default-key` from `~/.gnupg/gpg.conf`.
+If you use `-D/--Default-key`, `py-njv` reads `default-key` from `~/.gnupg/gpg.conf`.
 
 ## Quick Start
 
 Encrypt a folder:
 
 ```bash
-pygpgdir -e <dir>
+py-njv -e <dir>
 ```
 
 Decrypt a folder:
 
 ```bash
-pygpgdir -d <dir>
+py-njv -d <dir>
 ```
 
 Sign files in a folder:
 
 ```bash
-pygpgdir --sign <dir>
+py-njv --sign <dir>
 ```
 
 Verify signatures:
 
 ```bash
-pygpgdir --verify <dir>
+py-njv --verify <dir>
 ```
 
 ## CLI Options
