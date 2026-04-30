@@ -10,24 +10,6 @@ Add your animated GIF at `assets/pygpgdir-demo.gif` and it will be rendered here
 
 ![pygpgdir demo](assets/pygpgdir-demo.gif)
 
-Generate the GIF from a terminal recording:
-
-```bash
-# Record + render using the default command: pygpgdir --help
-./bin/generate-demo-gif record
-
-# Record + render a custom command
-./bin/generate-demo-gif record "pygpgdir -e gpgdir/tests/home/test --dry-run"
-
-# Render from an existing cast file
-./bin/generate-demo-gif render assets/pygpgdir-demo.cast assets/pygpgdir-demo.gif
-```
-
-Dependencies for demo generation:
-
-- `asciinema` for recording terminal sessions
-- `agg` for converting `.cast` files to GIF
-
 ## Features
     
 - Recursive encrypt/decrypt/sign/verify operations
