@@ -60,7 +60,7 @@ def _check_gpg_runtime():
     if major is None:
         print('[*] Warning: unable to detect GnuPG version. GnuPG 2.x is recommended.')
     elif major < 2:
-        print('[*] Warning: GnuPG 1.x detected. py-gpgdir is best supported with GnuPG 2.x.')
+        print('[*] Warning: GnuPG 1.x detected. ninja-vault is best supported with GnuPG 2.x.')
 
     _gpg_runtime_checked = True
 
@@ -112,7 +112,7 @@ def _with_progress(items, description, enabled=True):
 # ---------------------------------------------------------------------------
 
 def get_version():
-    print(version('py-gpgdir'))
+    print(version('ninja-vault'))
 
 
 def get_home_dir(home_dir=None):
@@ -131,12 +131,12 @@ def get_gpg_dir(home_dir=None):
 
 
 def get_key(home_dir=None):
-    gpgdirrc_file = os.path.join(get_home_dir(home_dir=home_dir), '.py_gpgdirrc')
-    if not os.path.isfile(gpgdirrc_file):
-        print('[*] Please edit ' + gpgdirrc_file + ' to include your gpg key identifier')
+    njvrc_file = os.path.join(get_home_dir(home_dir=home_dir), '.py_njvrc')
+    if not os.path.isfile(njvrc_file):
+        print('[*] Please edit ' + njvrc_file + ' to include your gpg key identifier')
         sys.exit(1)
     config = configparser.ConfigParser()
-    config.read(gpgdirrc_file)
+    config.read(njvrc_file)
     return config['DEFAULT']['UseKey']
 
 

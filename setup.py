@@ -13,7 +13,7 @@ setup(name='ninja-vault',
       author='Fabrice Sommavilla',
       author_email='fs@physalix.com',
       license='MIT',
-      packages=['gpgdir'],
+      packages=['ninja_vault'],
       install_requires=[
           'python-gnupg',
           'tqdm',

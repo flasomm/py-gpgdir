@@ -2,7 +2,7 @@
 .DS_Store
 /build/
 /dist/
-/py_gpgdir.egg-info/
+/ninja_vault.egg-info/
 *.pyc
 .eggs/
 __pycache__/

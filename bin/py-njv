@@ -2,7 +2,7 @@
 
 import getopt
 import sys
-import gpgdir
+import ninja_vault as njv
 
 
 def usage():
@@ -26,7 +26,7 @@ Options:
                                   in <directory>.
     -K, --Key-id <id>           - Specify GnuPG key ID, or key-matching
                                   string. This overrides the use_key value
-                                  in ~/.py_gpgdirrc
+                                  in ~/.py_njvrc
     -D, --Default-key           - Use the key that GnuPG defines as the
                                   default (i.e. the key that is specified
                                   by the default-key option in
@@ -73,7 +73,7 @@ def main(argv):
         if opt in ('-h', '--help'):
             usage()
         elif opt in ('-V', '--Version'):
-            gpgdir.get_version()
+            njv.get_version()
             sys.exit(0)
         elif opt in ('-e', '--encrypt'):
             action, action_arg = 'encrypt', arg
@@ -101,10 +101,10 @@ def main(argv):
         sys.exit(1)
 
     if use_default_key:
-        key_id = gpgdir.get_default_key(home_dir=home_dir)
+        key_id = njv.get_default_key(home_dir=home_dir)
 
     if action == 'encrypt':
-        gpgdir.encrypt_dir(
+        njv.encrypt_dir(
             action_arg,
             key_id=key_id,
             home_dir=home_dir,
@@ -113,7 +113,7 @@ def main(argv):
             dry_run=dry_run,
         )
     elif action == 'decrypt':
-        gpgdir.decrypt_dir(
+        njv.decrypt_dir(
             action_arg,
             home_dir=home_dir,
             verbose=verbose,
@@ -121,9 +121,9 @@ def main(argv):
             dry_run=dry_run,
         )
     elif action == 'sign':
-        gpgdir.sign_dir(action_arg, key_id=key_id, home_dir=home_dir, verbose=verbose)
+        njv.sign_dir(action_arg, key_id=key_id, home_dir=home_dir, verbose=verbose)
     elif action == 'verify':
-        gpgdir.verify_dir(action_arg, home_dir=home_dir, verbose=verbose)
+        njv.verify_dir(action_arg, home_dir=home_dir, verbose=verbose)
 
 
 if __name__ == "__main__":

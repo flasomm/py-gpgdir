@@ -6,9 +6,9 @@ Recursive directory encryption, decryption, signing, and verification with GnuPG
 
 ## Demo
 
-Add your animated GIF at `assets/pygpgdir-demo.gif` and it will be rendered here:
+Add your animated GIF at `assets/ninja-vault-demo.gif` and it will be rendered here:
 
-![pygpgdir demo](assets/pygpgdir-demo.gif)
+![ninja-vault demo](assets/ninja-vault-demo.gif)
 
 ## Features
     
@@ -35,7 +35,7 @@ pip install .
 
 ## Configuration
 
-Create `~/.py_gpgdirrc`:
+Create `~/.py_njvrc`:
 
 ```ini
 [DEFAULT]
@@ -80,7 +80,7 @@ py-njv --verify <dir>
 | `--verify <dir>` | Recursively verify `.sig` signatures |
 | `-K`, `--Key-id <id>` | Use a specific GPG key id/pattern |
 | `-D`, `--Default-key` | Use `default-key` from `~/.gnupg/gpg.conf` |
-| `-g`, `--gnupg-dir <dir>` | Use alternate home directory containing `.gnupg` and `.py_gpgdirrc` |
+| `-g`, `--gnupg-dir <dir>` | Use alternate home directory containing `.gnupg` and `.py_njvrc` |
 | `-u`, `--user-homedir <dir>` | Alias of `--gnupg-dir` |
 | `--no-delete` | Keep source files after encrypt/decrypt |
 | `--dry-run` | Preview actions without modifying files |
@@ -99,6 +99,6 @@ py-njv --verify <dir>
 Run tests:
 
 ```bash
-python -m pytest gpgdir/tests/test_gpgdir.py -v
+python -m pytest ninja_vault/tests/test_njv.py -v
 ```
 
