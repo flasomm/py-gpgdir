@@ -1,90 +1,114 @@
-# Pygpgdir - Recursive directory encryption with GnuPG
+# py-gpgdir
 
-pygpgdir is a python script that uses the python-gnupg module to encrypt and decrypt directories using a gpg key 
-specified in ~/.py_gpgdirrc.
+Recursive directory encryption, decryption, signing, and verification with GnuPG.
 
-pygpgdir recursively descends through a directory in order to encrypt, decrypt, sign, or verify every file in 
-a directory and all of its subdirectories. In addition, gpgdir is careful to not encrypt hidden files and directories.
-It should be noted that pygpgdir is not intended as a replacement or competitor to good filesystem encryption solutions 
-such as encfs - it is merely an effort to apply GnuPG recursively to files since GnuPG itself doesn't offer this capability.
+`pygpgdir` walks a directory tree and applies GPG operations to each file while skipping hidden files and folders.
 
-By default, pygpgdir deletes original files after successful encryption and decryption.
-Use --no-delete to keep originals.
-Use --dry-run to preview actions without writing or deleting files.
+## Demo
 
-After all, you probably don't want your ~/.py_gpgdirrc directory or ~/.bashrc file to be encrypted. 
-The GnuPG key gpgdir uses to encrypt/decrypt a directory is specified in ~/.py_gpgdirrc. 
+Add your animated GIF at `assets/pygpgdir-demo.gif` and it will be rendered here:
 
-pygpgdir currently removes files using standard filesystem deletion.
+![pygpgdir demo](assets/pygpgdir-demo.gif)
 
-### Install
+Generate the GIF from a terminal recording:
+
+```bash
+# Record + render using the default command: pygpgdir --help
+./bin/generate-demo-gif record
+
+# Record + render a custom command
+./bin/generate-demo-gif record "pygpgdir -e gpgdir/tests/home/test --dry-run"
+
+# Render from an existing cast file
+./bin/generate-demo-gif render assets/pygpgdir-demo.cast assets/pygpgdir-demo.gif
+```
+
+Dependencies for demo generation:
+
+- `asciinema` for recording terminal sessions
+- `agg` for converting `.cast` files to GIF
+
+## Features
+    
+- Recursive encrypt/decrypt/sign/verify operations
+- Hidden paths are ignored by default
+- `--dry-run` to preview operations safely
+- `--no-delete` to keep source files
+- Optional key override from CLI (`-K`, `-D`)
+- Optional alternate GPG home (`-g`, `-u`)
+- Progress bars for long operations
+
+## Installation
 
 ```bash
 pip install .
 ```
 
-### Usage
+## Configuration
 
-#### Encrypt folder
+Create `~/.py_gpgdirrc`:
+
+```ini
+[DEFAULT]
+UseKey=YOUR_KEY_ID
+```
+
+If you use `-D/--Default-key`, `pygpgdir` reads `default-key` from `~/.gnupg/gpg.conf`.
+
+## Quick Start
+
+Encrypt a folder:
 
 ```bash
 pygpgdir -e <dir>
 ```
 
-#### Decrypt folder
+Decrypt a folder:
 
 ```bash
 pygpgdir -d <dir>
 ```
 
-#### Sign folder
+Sign files in a folder:
 
 ```bash
 pygpgdir --sign <dir>
 ```
 
-#### Verify folder
+Verify signatures:
 
 ```bash
 pygpgdir --verify <dir>
 ```
 
-##### Options
+## CLI Options
 
-`-e`, `--encrypt` - Recursively encrypt all files in the directory specified on the command line. 
-All original files will be deleted (a password check is performed first to make sure that the correct password to 
-unlock the private GnuPG key is known to the user).
+| Option | Description |
+|---|---|
+| `-e`, `--encrypt <dir>` | Recursively encrypt files in directory |
+| `-d`, `--decrypt <dir>` | Recursively decrypt `.gpg` files in directory |
+| `--sign <dir>` | Recursively create detached `.sig` signatures |
+| `--verify <dir>` | Recursively verify `.sig` signatures |
+| `-K`, `--Key-id <id>` | Use a specific GPG key id/pattern |
+| `-D`, `--Default-key` | Use `default-key` from `~/.gnupg/gpg.conf` |
+| `-g`, `--gnupg-dir <dir>` | Use alternate home directory containing `.gnupg` and `.py_gpgdirrc` |
+| `-u`, `--user-homedir <dir>` | Alias of `--gnupg-dir` |
+| `--no-delete` | Keep source files after encrypt/decrypt |
+| `--dry-run` | Preview actions without modifying files |
+| `--verbose` | Verbose per-file output |
+| `-V`, `--Version` | Print version |
+| `-h`, `--help` | Show help |
 
+## Security Notes
 
-`-d`, `--decrypt` - Recursively decrypt all files in the directory specified on the command line. 
-The encrypted .gpg version of each file will be deleted.
+- By default, source files are removed after successful encrypt/decrypt.
+- File removal uses regular filesystem deletion (not secure wipe).
+- Use `--dry-run` before running on sensitive directories.
 
-`--sign` - Recursively sign all files in the directory specified on the command line. For each file,
-a detached .sig signature will be created.
+## Development
 
-`--verify` - Recursively verify every .sig file in the directory specified on the command line.
+Run tests:
 
-`-K`, `--Key-id <id>` - Manually specify a GnuPG key ID from the command line. Because GnuPG supports matching keys 
-with a string, id does not strictly have to be a key ID; it can be a string that uniquely matches a key in the GnuPG 
-key ring.
-
-`-D`, `--Default-key` - Use the key defined by `default-key` in `~/.gnupg/gpg.conf`.
-
-`-g`, `--gnupg-dir <dir>` - Use an alternate home directory containing `.gnupg` and `.py_gpgdirrc`.
-
-`-u`, `--user-homedir <dir>` - Alias of `--gnupg-dir`.
-
-`--no-delete` - Keep source files after successful encrypt/decrypt.
-
-`--dry-run` - Show planned encrypt/decrypt operations without modifying files.
-
-`--verbose` - Will print verbose info during the execution.
-
-`-V`, `--Version` - Display the version of this tool.
-
-`-h`, `--help` - Will print a list of available commands and options.
-
-### Test
 ```bash
 python -m pytest gpgdir/tests/test_gpgdir.py -v
 ```
