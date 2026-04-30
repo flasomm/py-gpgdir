@@ -1,8 +1,8 @@
-# Config file for ninja-vault.
+# Config file for py-ninja-vault.
 #
 # Set the key to use to encrypt files with "use_key=<key>", e.g.
 # "use_key=D4696445".  See "gpg --list-keys" for a list of keys on your
-# GnuPG key ring.  Alternatively, if you want ninja-vault to always use the
+# GnuPG key ring.  Alternatively, if you want py-ninja-vault to always use the
 # default key that is defined by the "default-key" variable in
 # ~/.gnupg/options, then uncomment the "default_key" line below.
 

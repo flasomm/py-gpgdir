@@ -60,7 +60,7 @@ def _check_gpg_runtime():
     if major is None:
         print('[*] Warning: unable to detect GnuPG version. GnuPG 2.x is recommended.')
     elif major < 2:
-        print('[*] Warning: GnuPG 1.x detected. ninja-vault is best supported with GnuPG 2.x.')
+        print('[*] Warning: GnuPG 1.x detected. py-ninja-vault is best supported with GnuPG 2.x.')
 
     _gpg_runtime_checked = True
 
@@ -107,12 +107,28 @@ def _with_progress(items, description, enabled=True):
     return tqdm(items, desc=description, unit='file', dynamic_ncols=True)
 
 
+def _sanitize_gpg_stderr(stderr):
+    """Remove sensitive identity lines from GPG stderr output."""
+    if not stderr:
+        return ''
+
+    filtered = []
+    for line in str(stderr).splitlines():
+        lowered = line.lower()
+        if 'encrypted with' in lowered:
+            continue
+        if '<' in line and '>' in line:
+            continue
+        filtered.append(line)
+    return '\n'.join(filtered).strip()
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
 def get_version():
-    print(version('ninja-vault'))
+    print(version('py-ninja-vault'))
 
 
 def get_home_dir(home_dir=None):
@@ -208,7 +224,8 @@ def encrypt_dir(
             if delete_original and not clean_file(file):
                 sys.exit(1)
         else:
-            print(status.stderr)
+            err = _sanitize_gpg_stderr(status.stderr)
+            print(err or '[!] Encryption failed.')
             sys.exit(1)
 
 
@@ -245,7 +262,8 @@ def decrypt_dir(
             if delete_original and not clean_file(file):
                 sys.exit(1)
         else:
-            print(status.stderr)
+            err = _sanitize_gpg_stderr(status.stderr)
+            print(err or '[!] Decryption failed. Check your key/passphrase.')
             sys.exit(1)
 
 

@@ -7,11 +7,11 @@ import ninja_vault as njv
 
 def usage():
     print("""
-py-njv (ninja-vault); Recursive directory encryption and decryption with GnuPG
+py-njv (py-ninja-vault); Recursive directory encryption and decryption with GnuPG
 
 [+] Version: $version
     Author:  Fabrice Sommavilla
-    URL:     https://github.com/flasomm/ninja-vault.git
+    URL:     https://github.com/flasomm/py-ninja-vault.git
 
 Usage: py-njv -e|-d <directory> [options]
 
