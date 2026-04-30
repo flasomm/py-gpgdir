@@ -1,4 +1,4 @@
-# ninja-vault
+# py-ninja-vault
 
 Recursive directory encryption, decryption, signing, and verification with GnuPG.
 
@@ -6,12 +6,12 @@ Recursive directory encryption, decryption, signing, and verification with GnuPG
 
 ## Demo
 
-Add your animated GIF at `assets/ninja-vault-demo.gif` and it will be rendered here:
+Add your animated GIF at `assets/py-ninja-vault-demo.gif` and it will be rendered here:
 
-![ninja-vault demo](assets/ninja-vault-demo.gif)
+![py-ninja-vault demo](assets/py-ninja-vault-demo.gif)
 
 ## Features
-    
+
 - Recursive encrypt/decrypt/sign/verify operations
 - Hidden paths are ignored by default
 - `--dry-run` to preview operations safely
