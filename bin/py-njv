@@ -10,7 +10,6 @@ def usage():
 py-njv (py-ninja-vault); Recursive directory encryption and decryption with GnuPG
 
 [+] Version: $version
-    Author:  Fabrice Sommavilla
     URL:     https://github.com/flasomm/py-ninja-vault.git
 
 Usage: py-njv -e|-d <directory> [options]
@@ -37,7 +36,7 @@ Options:
     --no-delete                 - Keep original files after encrypt/decrypt.
     --dry-run                   - Preview actions without changing files.
     --verbose                   - Run in verbose mode.
-    -V, --Version               - print version.
+    -v, --version               - print version.
     -h, --help                  - print help.
 
     """)
@@ -48,10 +47,10 @@ def main(argv):
     usage_message = 'py-njv -e|-d <directory> [options]'
     option_args = [
         "encrypt=", "decrypt=", "sign=", "verify=", "Key-id=", "Default-key",
-        "gnupg-dir=", "user-homedir=", "no-delete", "dry-run", "verbose", "Version", "help"
+        "gnupg-dir=", "user-homedir=", "no-delete", "dry-run", "verbose", "version", "help"
     ]
     try:
-        opts, args = getopt.getopt(argv, "e:d:K:Dg:u:Vh", option_args)
+        opts, args = getopt.getopt(argv, "e:d:K:Dg:u:vh", option_args)
         if len(opts) <= 0:
             print(usage_message)
             exit(1)
@@ -72,7 +71,7 @@ def main(argv):
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage()
-        elif opt in ('-V', '--Version'):
+        elif opt in ('-v', '--version'):
             njv.get_version()
             sys.exit(0)
         elif opt in ('-e', '--encrypt'):
