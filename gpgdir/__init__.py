@@ -5,6 +5,7 @@ import re
 import configparser
 import glob
 import subprocess
+import shutil
 import gnupg
 import getpass
 
@@ -14,18 +15,66 @@ except ImportError:
     tqdm = None
 
 
+_gpg_runtime_checked = False
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 
 def _get_gpg(home_dir=None, verbose=False):
     """Return a configured GPG instance."""
+    _check_gpg_runtime()
     return gnupg.GPG(gnupghome=get_gpg_dir(home_dir=home_dir), verbose=verbose)
+
+
+def _detect_gpg_major_version():
+    """Return the major gpg version number, or None if unknown."""
+    try:
+        proc = subprocess.run(
+            ['gpg', '--version'],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return None
+
+    if not proc.stdout:
+        return None
+
+    first_line = proc.stdout.splitlines()[0]
+    match = re.search(r'(\d+)\.', first_line)
+    if not match:
+        return None
+    return int(match.group(1))
+
+
+def _check_gpg_runtime():
+    """Emit a compatibility warning once when runtime looks unsupported."""
+    global _gpg_runtime_checked
+    if _gpg_runtime_checked:
+        return
+
+    major = _detect_gpg_major_version()
+    if major is None:
+        print('[*] Warning: unable to detect GnuPG version. GnuPG 2.x is recommended.')
+    elif major < 2:
+        print('[*] Warning: GnuPG 1.x detected. py-gpgdir is best supported with GnuPG 2.x.')
+
+    _gpg_runtime_checked = True
 
 
 def _reload_agent():
     """Reload the gpg-agent so cached credentials are refreshed."""
-    subprocess.run(['gpgconf', '--reload', 'gpg-agent'], check=True)
+    if shutil.which('gpgconf') is None:
+        return
+
+    try:
+        subprocess.run(['gpgconf', '--reload', 'gpg-agent'], check=True)
+    except subprocess.SubprocessError:
+        # Non-fatal: decrypt/sign can still proceed depending on local GPG setup.
+        pass
 
 
 def _is_hidden(path):

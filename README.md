@@ -26,6 +26,13 @@ Add your animated GIF at `assets/pygpgdir-demo.gif` and it will be rendered here
 pip install .
 ```
 
+## Compatibility
+
+- Recommended: GnuPG 2.x
+- Supported on Linux, BSD, and macOS when `gpg` is available in `PATH`
+- GnuPG 1.x may work for some operations, but is not officially supported
+- `gpgconf` is optional: if missing, agent reload is skipped automatically
+
 ## Configuration
 
 Create `~/.py_gpgdirrc`:
