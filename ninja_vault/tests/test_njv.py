@@ -68,7 +68,7 @@ class TestGetHomeDir(unittest.TestCase):
         self.assertEqual(njv.get_home_dir(), HOME_DIR)
 
 
-class TestGetGpgDir(unittest.TestCase):
+class TestGetGnupgDir(unittest.TestCase):
     @mock.patch('ninja_vault.get_home_dir')
     def test_get_gpg_dir(self, mock_get_home_dir):
         mock_get_home_dir.return_value = HOME_DIR
